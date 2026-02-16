@@ -1,0 +1,157 @@
+﻿@model Project2Email.Entities.AppUser
+
+@{
+    string profileImage = "/images/default-user.png";
+
+    if (Model != null)
+    {
+        profileImage = $"https://ui-avatars.com/api/?name={Model.Name}+{Model.Surname}&background=696cff&color=fff&size=128&bold=true";
+
+        if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            if (Model.ImageUrl.StartsWith("/images/") || Model.ImageUrl.StartsWith("http"))
+            {
+                profileImage = Model.ImageUrl;
+            }
+            else
+            {
+                profileImage = "/images/" + Model.ImageUrl;
+            }
+        }
+    }
+}
+
+<style>
+    .search-results-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #2b2c40; 
+        border: 1px solid #444564;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        display: none; 
+        margin-top: 5px;
+        overflow: hidden;
+    }
+
+    .search-result-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #444564;
+        cursor: pointer;
+        display: block;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: #38394e; 
+        }
+
+    .result-subject {
+        color: #dbdbeb;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: block;
+    }
+
+    .result-sender {
+        color: #a3a4cc;
+        font-size: 0.8rem;
+    }
+
+    .navbar-search-wrapper {
+        position: relative;
+    }
+</style>
+
+<nav class="layout-navbar">
+    <div class="navbar-search-wrapper">
+        <i class='bx bx-search'></i>
+        <input type="text" id="globalSearchInput" placeholder="Mail, kişi veya konu ara..." aria-label="Search..." autocomplete="off">
+
+        <div id="searchResults" class="search-results-container"></div>
+    </div>
+
+    <div class="d-flex align-items-center">
+        <div class="user-info-text text-end me-3 d-none d-md-block">
+            @if (Model != null)
+            {
+                <span class="d-block fw-semibold name">@Model.Name @Model.Surname</span>
+                <small class="role">@Model.Email</small>
+            }
+            else
+            {
+                <span class="d-block fw-semibold name">Misafir</span>
+                <small class="role">Giriş Yapılmadı</small>
+            }
+        </div>
+
+        <div class="dropdown">
+            <img src="@profileImage" class="avatar rounded-circle" alt="Avatar" data-bs-toggle="dropdown" style="width: 40px; height: 40px; object-fit: cover;">
+
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/Profile/Index/"><i class="bx bx-user me-2"></i> Profilim</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/Login/UserLogin/"><i class="bx bx-power-off me-2"></i> Çıkış Yap</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#globalSearchInput").on("keyup", function () {
+            var value = $(this).val();
+            var resultBox = $("#searchResults");
+
+            if (value.length < 1) {
+                resultBox.hide();
+                resultBox.html("");
+                return;
+            }
+
+            $.ajax({
+                url: "/Message/SearchInbox",
+                type: "GET",
+                data: { p: value },
+                success: function (data) {
+                    resultBox.html(""); 
+
+                    if (data.length > 0) {
+                        $.each(data, function (index, item) {
+                            var html = `
+                                <a href="/Message/Detail/${item.messageId}" class="search-result-item">
+                                    <span class="result-subject">${item.subject}</span>
+                                    <span class="result-sender">${item.senderEmail}</span>
+                                </a>
+                            `;
+                            resultBox.append(html);
+                        });
+                        resultBox.show();
+                    } else {
+                        resultBox.html('<div class="p-3 text-center text-muted" style="color: #a3a4cc;">Sonuç bulunamadı.</div>');
+                        resultBox.show();
+                    }
+                },
+                error: function () {
+                    console.log("Arama hatası");
+                }
+            });
+        });
+
+        $(document).click(function (e) {
+            if (!$(e.target).closest('.navbar-search-wrapper').length) {
+                $("#searchResults").hide();
+            }
+        });
+    });
+</script>

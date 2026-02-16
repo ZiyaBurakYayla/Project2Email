@@ -1,0 +1,260 @@
+﻿@model Project2Email.Entities.Message
+
+@{
+    ViewData["Title"] = "Yeni Mesaj Oluştur";
+    Layout = "~/Views/Layout/Index.cshtml";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+
+<style>
+    .compose-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        width: 100%;
+    }
+
+    .compose-container {
+        max-width: 800px;
+        width: 100%;
+    }
+
+    .card {
+        background-color: #2b2c40;
+        border: 1px solid #444564;
+        border-radius: 0.5rem;
+    }
+
+    .card-header {
+        border-bottom: 1px solid #444564;
+        padding: 1.5rem;
+        background-color: transparent;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-control {
+        background-color: #232333;
+        border: 1px solid #444564;
+        color: #dbdbeb;
+    }
+
+        .form-control:focus {
+            background-color: #232333;
+            border-color: #696cff;
+            color: #dbdbeb;
+            box-shadow: 0 0 0 0.25rem rgba(105, 108, 255, 0.15);
+        }
+
+    .form-label {
+        color: #dbdbeb;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-primary {
+        background-color: #696cff;
+        border-color: #696cff;
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background-color: #5f61e6;
+            border-color: #5f61e6;
+        }
+
+    .btn-outline-secondary {
+        color: #a3a4cc;
+        border-color: #444564;
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #38394e;
+            color: #fff;
+            border-color: #38394e;
+        }
+
+    .input-group-text {
+        background: #232333;
+        border-color: #444564;
+        color: #a3a4cc;
+    }
+    .note-editor.note-frame {
+        border: 1px solid #444564 !important;
+        background-color: #232333;
+    }
+
+    .note-editor .note-toolbar {
+        background-color: #2b2c40 !important;
+        border-bottom: 1px solid #444564 !important;
+        color: #dbdbeb;
+    }
+
+    .note-editor .note-editing-area .note-editable {
+        background-color: #232333 !important;
+        color: #dbdbeb !important;
+    }
+
+    .note-btn {
+        background-color: #38394e !important;
+        color: #dbdbeb !important;
+        border: 1px solid #444564 !important;
+    }
+
+    .note-placeholder {
+        color: #a3a4cc !important;
+    }
+
+    .note-statusbar {
+        background-color: #2b2c40 !important;
+        border-top: 1px solid #444564 !important;
+    }
+</style>
+
+<div class="compose-wrapper">
+    <div class="compose-container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class='bx bx-edit-alt me-2 text-primary'></i>Yeni Mesaj Oluştur</h5>
+                <a href="/Message/Inbox" class="btn btn-sm btn-outline-secondary">
+                    <i class='bx bx-x'></i> Kapat
+                </a>
+            </div>
+
+            <div class="card-body">
+                <form id="composeForm" method="post">
+
+                    <input type="hidden" asp-for="CategoryId" value="" />
+                    <input type="hidden" asp-for="Category" value="" />
+                    <input type="hidden" asp-for="Summary" value="" />
+
+                    <div class="mb-3">
+                        <label asp-for="ReceiverEmail" class="form-label">Alıcı Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class='bx bx-user'></i></span>
+                            <input asp-for="ReceiverEmail" class="form-control" placeholder="alicinin@adresi.com" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label">Konu</label>
+                        <input asp-for="Subject" class="form-control" placeholder="Mesaj konusu..." required />
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="MessageDetail" class="form-label">Mesaj İçeriği</label>
+
+                        <textarea asp-for="MessageDetail" id="messageEditor" class="form-control"></textarea>
+
+                        <div class="form-text mt-2" style="color: #696cff; font-size: 0.8rem;">
+                            <i class='bx bx-bot'></i> Mesajınız yapay zeka tarafından özetlenecektir.
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/Message/Inbox" class="btn btn-outline-secondary">İptal</a>
+                        <button type="submit" class="btn btn-primary" id="btnSend">
+                            <i class='bx bx-paper-plane me-1'></i> Gönder
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#messageEditor').summernote({
+            placeholder: 'Mesajınızı buraya yazın...',
+            tabsize: 2,
+            height: 300,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ],
+            callbacks: {
+                onInit: function() {
+                    $('.note-editable').css('background-color', '#232333').css('color', '#dbdbeb');
+                }
+            }
+        });
+
+        $("#composeForm").submit(function (e) {
+            e.preventDefault();
+
+            var btn = $("#btnSend");
+            var originalText = btn.html();
+
+            var content = $('#messageEditor').summernote('code');
+            $('#messageEditor').val(content);
+
+            if ($('#messageEditor').summernote('isEmpty')) {
+                 Swal.fire({
+                    icon: 'warning',
+                    title: 'Uyarı',
+                    text: 'Lütfen mesaj içeriğini boş bırakmayın.',
+                    background: '#2b2c40', color: '#dbdbeb', confirmButtonColor: '#696cff'
+                });
+                return;
+            }
+
+            btn.prop("disabled", true);
+            btn.html("<span class='spinner-border spinner-border-sm'></span> Gönderiliyor...");
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: "POST",
+                url: "/Message/SendMessage",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Mesaj Gönderildi!',
+                            text: 'AI Özeti: ' + (response.aiSummary ? response.aiSummary : 'İşlendi'),
+                            background: '#2b2c40', color: '#dbdbeb', confirmButtonColor: '#696cff'
+                        }).then((result) => {
+                            window.location.href = "/Message/Inbox";
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata',
+                            text: response.message, 
+                            background: '#2b2c40', color: '#dbdbeb', confirmButtonColor: '#696cff'
+                        });
+                        btn.prop("disabled", false);
+                        btn.html(originalText);
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Sunucu Hatası',
+                        text: 'Veritabanı bağlantısında sorun oluştu.',
+                        background: '#2b2c40', color: '#dbdbeb'
+                    });
+                    btn.prop("disabled", false);
+                    btn.html(originalText);
+                }
+            });
+        });
+    });
+</script>

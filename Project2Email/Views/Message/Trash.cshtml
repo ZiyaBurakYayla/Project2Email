@@ -1,0 +1,299 @@
+﻿@model List<Project2Email.Dtos.InboxMessageDto>
+
+@{
+    ViewData["Title"] = "Çöp Kutusu";
+    Layout = "~/Views/Layout/Index.cshtml";
+}
+
+<style>
+    .email-card {
+        background: var(--bg-paper);
+        border-radius: 0.5rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+    }
+
+    .email-toolbar {
+        padding: 0.8rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .toolbar-left, .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .icon-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.25rem;
+        padding: 0.4rem;
+        border-radius: 50%;
+        transition: 0.2s;
+    }
+
+        .icon-btn:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+    .email-list-container {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .email-list-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .email-list-item:hover {
+            background-color: rgba(255,255,255,0.02);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-color: transparent;
+        }
+
+    .form-check-input {
+        background-color: var(--bg-body);
+        border-color: #6f7194;
+        cursor: pointer;
+    }
+
+        .form-check-input:checked {
+            background-color: #696cff;
+            border-color: #696cff;
+        }
+
+    .email-content {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        white-space: nowrap;
+        margin-left: 1rem;
+    }
+
+    .email-subject {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-right: 0.5rem;
+    }
+
+    .email-snippet {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .email-meta {
+        text-align: right;
+        min-width: 120px;
+        margin-left: 1rem;
+    }
+
+    .sender-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .email-date {
+        font-size: 0.75rem;
+        color: #6f7194;
+    }
+
+    .star-icon {
+        cursor: pointer;
+        font-size: 1.4rem;
+        color: #6f7194;
+        transition: 0.2s;
+        z-index: 10;
+        position: relative;
+    }
+
+        .star-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .star-icon.starred {
+            color: #ffab00;
+        }
+</style>
+
+<div class="email-card">
+    <div class="email-toolbar">
+        <div class="toolbar-left">
+            <div class="form-check me-2">
+                <input class="form-check-input" type="checkbox" id="selectAll">
+            </div>
+
+            <button class="icon-btn" title="Yenile" onclick="location.reload()"><i class='bx bx-refresh'></i></button>
+
+            <button class="icon-btn" title="Geri Yükle" onclick="restoreSelected()">
+                <i class='bx bx-undo'></i>
+            </button>
+
+            <button class="icon-btn text-danger" title="Kalıcı Olarak Sil" onclick="deleteForeverSelected()">
+                <i class='bx bx-trash-alt'></i>
+            </button>
+        </div>
+
+        <div class="toolbar-right text-muted small">
+            <span style="color: var(--text-secondary);">Toplam: @Model.Count</span>
+        </div>
+    </div>
+
+    <div class="email-list-container">
+        @if (Model.Count == 0)
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                <i class='bx bx-trash fs-1 mb-2'></i>
+                <span>Çöp kutusu boş.</span>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                var starClass = item.IsStarred ? "bxs-star starred" : "bx-star";
+
+                <div class="email-list-item @(item.IsRead ? "" : "fw-bold")" id="row-@item.MessageId">
+
+                    <input class="form-check-input msg-checkbox" type="checkbox" value="@item.MessageId" onclick="event.stopPropagation()">
+
+                    <i class='bx @starClass star-icon ms-3' onclick="toggleStar(event, this, @item.MessageId)"></i>
+
+                    <div class="email-content" onclick="goToDetail(@item.MessageId)">
+                        <span class="email-subject">@item.Subject</span>
+                        <span class="email-snippet"> - @item.Summary</span>
+                    </div>
+
+                    <div class="email-meta">
+                        <span class="sender-name">@item.SenderEmail</span>
+                        <span class="email-date">@item.SendDate.ToString("dd MMM")</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function goToDetail(id) {
+        window.location.href = '/Message/Detail/' + id;
+    }
+
+    $('#selectAll').change(function() {
+        var isChecked = $(this).prop('checked');
+        $('.msg-checkbox').prop('checked', isChecked);
+    });
+
+    function restoreSelected() {
+        var selectedIds = [];
+        $('.msg-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Mesaj Seçmediniz', text: 'Lütfen işlem yapmak için en az bir mesaj seçin.', confirmButtonColor: '#696cff' });
+            return;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/Message/RestoreFromTrash",
+            data: { ids: selectedIds },
+            success: function(response) {
+                if (response.success) {
+                    selectedIds.forEach(id => {
+                        $('#row-' + id).fadeOut(300, function() { $(this).remove(); });
+                    });
+                    Swal.fire({ icon: 'success', title: 'Geri Yüklendi', text: 'Mesajlar Gelen Kutusuna taşındı.', timer: 1500, showConfirmButton: false });
+                }
+            }
+        });
+    }
+
+    function deleteForeverSelected() {
+        var selectedIds = [];
+        $('.msg-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Mesaj Seçmediniz', text: 'Lütfen silmek için en az bir mesaj seçin.', confirmButtonColor: '#696cff' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Kalıcı Olarak Silinsin mi?',
+            text: "Bu işlem geri alınamaz! " + selectedIds.length + " mesaj tamamen silinecek.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#696cff',
+            confirmButtonText: 'Evet, Kalıcı Sil',
+            cancelButtonText: 'İptal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Message/DeleteForever",
+                    data: { ids: selectedIds },
+                    success: function(response) {
+                        if (response.success) {
+                            selectedIds.forEach(id => {
+                                $('#row-' + id).fadeOut(300, function() { $(this).remove(); });
+                            });
+                            Swal.fire({ icon: 'success', title: 'Silindi', text: 'Mesajlar kalıcı olarak silindi.', timer: 1500, showConfirmButton: false });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function toggleStar(e, element, messageId) {
+        if(e) { e.stopPropagation(); }
+        var icon = $(element);
+        if (icon.hasClass('bxs-star')) {
+             icon.removeClass('bxs-star starred').addClass('bx-star');
+        } else {
+             icon.removeClass('bx-star').addClass('bxs-star starred');
+        }
+        $.ajax({
+            type: "POST",
+            url: "/Message/ToggleStar",
+            data: { id: messageId },
+            success: function (response) {
+                if (response.success) {
+                    if (response.isStarred) icon.removeClass('bx-star').addClass('bxs-star starred');
+                    else icon.removeClass('bxs-star starred').addClass('bx-star');
+                } else {
+                    location.reload();
+                }
+            }
+        });
+    }
+</script>
+
+
+            okunup okunmama filtrelemesı gelecek 

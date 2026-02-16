@@ -1,0 +1,236 @@
+﻿@model Project2Email.Dtos.UserEditDto
+@{
+    ViewData["Title"] = "Profil Düzenle";
+    Layout = "~/Views/Layout/Index.cshtml";
+
+    string defaultAvatarUrl = $"https://ui-avatars.com/api/?name={Model.Name}+{Model.Surname}&background=696cff&color=fff&size=128&bold=true";
+    string currentImageSrc = defaultAvatarUrl;
+
+    if (Model != null && !string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        if (Model.ImageUrl.StartsWith("/images/") || Model.ImageUrl.StartsWith("http"))
+        {
+            currentImageSrc = Model.ImageUrl;
+        }
+        else
+        {
+            currentImageSrc = "/images/" + Model.ImageUrl;
+        }
+    }
+}
+
+<style>
+    .profile-card {
+        background: var(--bg-paper);
+        border-radius: 0.5rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .profile-toolbar {
+        padding: 0.8rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .profile-content-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        background-color: var(--bg-body);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+        .form-control:focus {
+            background-color: var(--bg-body);
+            border-color: #696cff;
+            box-shadow: 0 0 0 0.25rem rgba(105, 108, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+    .avatar-preview {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--bg-body);
+        box-shadow: 0 0 0 2px #696cff;
+        margin-bottom: 1rem;
+        background-color: var(--bg-body);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    input[type="file"]::file-selector-button {
+        background-color: #696cff;
+        color: #fff;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 0.3rem;
+        margin-right: 1rem;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: #5f61e6;
+        }
+
+    .btn-primary {
+        background-color: #696cff;
+        border-color: #696cff;
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background-color: #5f61e6;
+            border-color: #5f61e6;
+            color: #fff;
+        }
+
+    .password-collapse-area {
+        background-color: rgba(105, 108, 255, 0.08); 
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px dashed #696cff;
+    }
+</style>
+
+<div class="profile-card">
+    <div class="profile-toolbar">
+        <h5 class="mb-0 fw-semibold text-primary">Profil Bilgileri</h5>
+        <a href="/Message/Inbox" class="btn btn-sm btn-outline-secondary">
+            <i class='bx bx-arrow-back me-1'></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="profile-content-container">
+        <form method="post" enctype="multipart/form-data">
+
+            <input type="hidden" name="deleteImage" id="deleteImageInput" value="false" />
+
+            <div class="row h-100">
+                <div class="col-md-8 border-end border-secondary border-opacity-25 pe-md-4">
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Ad</label>
+                            <input type="text" asp-for="Name" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Soyad</label>
+                            <input type="text" asp-for="Surname" class="form-control" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Email Adresi</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-secondary);"><i class='bx bx-envelope'></i></span>
+                                <input type="email" asp-for="Email" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Hakkında</label>
+                            <textarea asp-for="About" class="form-control" rows="3" placeholder="Kendinizden kısaca bahsedin..."></textarea>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button class="btn btn-outline-primary w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#passwordSection" aria-expanded="false">
+                                <span><i class='bx bx-lock-alt me-2'></i>Şifremi Değiştirmek İstiyorum</span>
+                                <i class='bx bx-chevron-down'></i>
+                            </button>
+
+                            <div class="collapse" id="passwordSection">
+                                <div class="password-collapse-area">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Yeni Şifre</label>
+                                            <input type="password" asp-for="Password" class="form-control" placeholder="Yeni şifreniz" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Yeni Şifre (Tekrar)</label>
+                                            <input type="password" asp-for="ConfirmPassword" class="form-control" placeholder="Şifreyi doğrulayın" />
+                                        </div>
+                                        <div class="col-12">
+                                            <small class="text-muted"><i class='bx bx-info-circle'></i> Şifrenizi değiştirmek istemiyorsanız bu alanları boş bırakın.</small>
+                                            <span asp-validation-for="ConfirmPassword" class="text-danger d-block mt-1 small"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class='bx bx-save me-2'></i> Değişiklikleri Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 d-flex flex-column align-items-center justify-content-start pt-3">
+                    <div class="avatar-preview">
+                        <img src="@currentImageSrc" alt="Profil Resmi" id="previewImg" />
+                    </div>
+
+                    <div class="w-100 px-3 d-flex flex-column gap-2">
+                        <label class="form-label text-center w-100 small text-muted mb-0">Fotoğrafı Güncelle</label>
+                        <input type="file" asp-for="Image" class="form-control form-control-sm" id="formFile" onchange="previewFile()" accept="image/*" />
+
+                        <button type="button" onclick="removeImage()" class="btn btn-sm btn-outline-danger w-100">
+                            <i class='bx bx-trash me-1'></i> Fotoğrafı Kaldır
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewFile() {
+        const preview = document.getElementById('previewImg');
+        const file = document.querySelector('input[type=file]').files[0];
+        const reader = new FileReader();
+
+        reader.addEventListener("load", function () {
+            preview.src = reader.result;
+            document.getElementById('deleteImageInput').value = 'false';
+        }, false);
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removeImage() {
+        document.getElementById('previewImg').src = '@Html.Raw(defaultAvatarUrl)';
+        document.getElementById('formFile').value = '';
+        document.getElementById('deleteImageInput').value = 'true';
+    }
+</script>

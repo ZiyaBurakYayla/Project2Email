@@ -1,0 +1,131 @@
+﻿<style>
+    #sidebar-wrapper {
+        height: 100vh; 
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; 
+    }
+
+    .sidebar-content {
+        flex-grow: 1; 
+        overflow-y: auto; 
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+        .sidebar-content::-webkit-scrollbar {
+            display: none;
+        }
+
+    .sidebar-footer {
+        flex-shrink: 0;
+        margin-top: auto; 
+    }
+</style>
+
+<div id="sidebar-wrapper">
+
+    <div class="sidebar-content">
+        <div class="app-brand">
+            <i class='bx bxl-gmail text-primary' style="font-size: 2rem;"></i>
+            <span>Project2Email</span>
+        </div>
+
+        <a href="/Message/SendMessage/" class="btn btn-compose mb-4">
+            <i class='bx bx-plus'></i> Oluştur
+        </a>
+
+        <div class="list-group">
+            <a href="/Dashboard/Index/" class="list-group-item list-group-item-action">
+                <i class='bx bx-pie-chart-alt-2'></i> Dashboard
+            </a>
+
+            <a href="/Message/Inbox/" class="list-group-item list-group-item-action active d-flex justify-content-between align-items-center">
+                <div> <i class='bx bx-envelope'></i> Gelen Kutusu</div>
+                @if (ViewBag.InboxCount > 0)
+                {
+                    <span class="badge bg-primary rounded-pill">@ViewBag.InboxCount</span>
+                }
+            </a>
+
+            <a href="/Message/IsStarred/" class="list-group-item list-group-item-action">
+                <div><i class='bx bx-star'></i> Yıldızlı</div>
+                @if (ViewBag.InboxCount > 0)
+                {
+                    <span class="badge bg-primary rounded-pill">@ViewBag.StarredCount</span>
+                }
+            </a>
+
+            <a href="/Message/SendBox/" class="list-group-item list-group-item-action">
+                <div><i class='bx bx-send'></i> Gönderilen</div>
+                @if (ViewBag.InboxCount > 0)
+                {
+                    <span class="badge bg-primary rounded-pill">@ViewBag.SentCount</span>
+                }
+            </a>
+
+            <a href="/Message/Trash/" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div><i class='bx bx-trash'></i> Çöp Kutusu</div>
+                @if (ViewBag.TrashCount > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@ViewBag.TrashCount</span>
+                }
+            </a>
+        </div>
+
+        <div class="menu-header">Kategoriler</div>
+        <div class="list-group">
+
+            <a href="/Message/Index?id=1"
+               class="list-group-item list-group-item-action @(ViewBag.CurrentCategoryId == 1 ? "active" : "") d-flex justify-content-between align-items-center">
+                <div><span class="badge-dot bg-label-warning"></span> İş</div>
+                @if (ViewBag.Cat1Count > 0)
+                {
+                    <span class="badge bg-label-warning text-dark rounded-pill">@ViewBag.Cat1Count</span>
+                }
+            </a>
+
+            <a href="/Message/Index?id=2"
+               class="list-group-item list-group-item-action @(ViewBag.CurrentCategoryId == 2 ? "active" : "") d-flex justify-content-between align-items-center">
+                <div><span class="badge-dot bg-label-info"></span> Sosyal</div>
+                @if (ViewBag.Cat2Count > 0)
+                {
+                    <span class="badge bg-label-info text-dark rounded-pill">@ViewBag.Cat2Count</span>
+                }
+            </a>
+
+            <a href="/Message/Index?id=3"
+               class="list-group-item list-group-item-action @(ViewBag.CurrentCategoryId == 3 ? "active" : "") d-flex justify-content-between align-items-center">
+                <div><span class="badge-dot bg-label-success"></span> Finans</div>
+                @if (ViewBag.Cat3Count > 0)
+                {
+                    <span class="badge bg-label-success text-dark rounded-pill">@ViewBag.Cat3Count</span>
+                }
+            </a>
+
+            <a href="/Message/Index?id=4"
+               class="list-group-item list-group-item-action @(ViewBag.CurrentCategoryId == 4 ? "active" : "") d-flex justify-content-between align-items-center">
+                <div><span class="badge-dot bg-label-primary"></span> Tanıtım</div>
+                @if (ViewBag.Cat4Count > 0)
+                {
+                    <span class="badge bg-label-primary text-dark rounded-pill">@ViewBag.Cat4Count</span>
+                }
+            </a>
+
+            <a href="/Message/Index?id=5"
+               class="list-group-item list-group-item-action @(ViewBag.CurrentCategoryId == 5 ? "active" : "") d-flex justify-content-between align-items-center">
+                <div><span class="badge-dot bg-label-danger"></span> Önemli</div>
+                @if (ViewBag.Cat5Count > 0)
+                {
+                    <span class="badge bg-label-danger text-dark rounded-pill">@ViewBag.Cat5Count</span>
+                }
+            </a>
+        </div>
+
+        <div class="mb-4"></div>
+    </div>
+    <div class="sidebar-footer">
+        <a href="/Login/UserLogin" class="btn-logout">
+            <i class='bx bx-power-off'></i> Çıkış Yap
+        </a>
+    </div>
+</div>

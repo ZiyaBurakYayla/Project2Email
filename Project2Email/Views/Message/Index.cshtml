@@ -1,0 +1,368 @@
+﻿@model List<Project2Email.Dtos.InboxMessageDto>
+
+@{
+    string pageTitle = "Gelen Kutusu";
+    if (ViewBag.CurrentCategoryId != null)
+    {
+        int catId = (int)ViewBag.CurrentCategoryId;
+        switch (catId)
+        {
+            case 1: pageTitle = "İş Kategorisi"; break;
+            case 2: pageTitle = "Sosyal Kategorisi"; break;
+            case 3: pageTitle = "Finans Kategorisi"; break;
+            case 4: pageTitle = "Tanıtım Kategorisi"; break;
+            case 5: pageTitle = "Önemli Kategorisi"; break;
+            default: pageTitle = "Kategori"; break;
+        }
+    }
+
+    ViewData["Title"] = pageTitle;
+    Layout = "~/Views/Layout/Index.cshtml";
+}
+
+<style>
+    :root {
+        --bg-paper: #2b2c40;
+        --bg-body: #232333;
+        --border-color: #444564;
+        --text-primary: #dbdbeb;
+        --text-secondary: #a3a4cc;
+        --hover-bg: rgba(68, 69, 100, 0.5);
+    }
+
+    .email-card {
+        background: var(--bg-paper);
+        border-radius: 0.5rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        min-height: 80vh;
+    }
+    .email-toolbar {
+        padding: 0.8rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: rgba(35, 35, 51, 0.3);
+    }
+
+    .toolbar-left, .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .icon-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.25rem;
+        padding: 0.4rem;
+        border-radius: 50%;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+        .icon-btn:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+    .email-list-container {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .email-list-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--text-primary);
+    }
+
+        .email-list-item:hover {
+            background-color: var(--hover-bg);
+            z-index: 1;
+        }
+
+    .form-check-input {
+        background-color: var(--bg-body);
+        border-color: #6f7194;
+        cursor: pointer;
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+        .form-check-input:checked {
+            background-color: #696cff;
+            border-color: #696cff;
+        }
+    .email-content {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        white-space: nowrap;
+        margin-left: 1rem;
+    }
+
+    .email-subject {
+        color: var(--text-primary);
+        margin-right: 0.5rem;
+    }
+
+    .fw-bold .email-subject {
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .fw-bold {
+        background-color: rgba(105, 108, 255, 0.05); 
+    }
+
+    .email-snippet {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .email-meta {
+        text-align: right;
+        min-width: 140px;
+        margin-left: 1rem;
+    }
+
+    .sender-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .email-date {
+        font-size: 0.75rem;
+        color: #6f7194;
+    }
+    .star-icon {
+        cursor: pointer;
+        font-size: 1.4rem;
+        color: #6f7194;
+        transition: 0.2s;
+        z-index: 10;
+    }
+
+        .star-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .star-icon.starred {
+            color: #ffab00; 
+        }
+    .category-badge {
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-right: 8px;
+        background-color: #444564;
+        color: #fff;
+    }
+</style>
+
+<div class="email-card">
+
+    <div class="email-toolbar">
+        <div class="toolbar-left">
+            <div class="form-check me-2">
+                <input class="form-check-input" type="checkbox" id="selectAll">
+            </div>
+
+            <button class="icon-btn" title="Yenile" onclick="location.reload()">
+                <i class='bx bx-refresh'></i>
+            </button>
+
+            <button class="icon-btn" title="Çöp Kutusuna Taşı" onclick="deleteSelected()">
+                <i class='bx bx-trash'></i>
+            </button>
+
+            <button class="icon-btn" title="Okunma Durumunu Değiştir" onclick="toggleReadSelected()">
+                <i class='bx bx-envelope'></i>
+            </button>
+
+            <span class="ms-3 fw-semibold text-white">@pageTitle</span>
+        </div>
+
+        <div class="toolbar-right text-muted small">
+            <span style="color: var(--text-secondary);">@Model.Count Mesaj</span>
+        </div>
+    </div>
+
+    <div class="email-list-container">
+        @if (Model.Count > 0)
+        {
+            @foreach (var item in Model)
+            {
+                var isStarred = item.GetType().GetProperty("IsStarred") != null ? (bool)item.GetType().GetProperty("IsStarred").GetValue(item) : false;
+                var starClass = isStarred ? "bxs-star starred" : "bx-star";
+
+                <div class="email-list-item @(item.IsRead ? "" : "fw-bold")" id="row-@item.MessageId">
+
+                    <input class="form-check-input msg-checkbox" type="checkbox" value="@item.MessageId" onclick="event.stopPropagation()">
+
+                    <i class='bx @starClass star-icon ms-3' onclick="toggleStar(event, this, @item.MessageId)"></i>
+
+                    <div class="email-content" onclick="goToDetail(@item.MessageId)">
+
+                        @if (!string.IsNullOrEmpty(item.CategoryName))
+                        {
+                            <span class="category-badge">@item.CategoryName</span>
+                        }
+
+                        <span class="email-subject">@item.Subject</span>
+                        <span class="email-snippet"> - @item.Summary</span>
+                    </div>
+
+                    <div class="email-meta" onclick="goToDetail(@item.MessageId)">
+                        <span class="sender-name">
+                            @if (!item.IsRead)
+                            {
+                                <i class='bx bxs-circle text-primary me-1' style="font-size: 8px;"></i>
+                            }
+                            @item.SenderEmail
+                        </span>
+                        <span class="email-date">@item.SendDate.ToString("dd MMM HH:mm")</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class='bx bx-envelope-open text-secondary' style="font-size: 4rem;"></i>
+                <p class="mt-3 text-secondary">Bu klasörde mesaj bulunmuyor.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function goToDetail(id) {
+        window.location.href = '/Message/Detail/' + id;
+    }
+    $('#selectAll').change(function() {
+        var isChecked = $(this).prop('checked');
+        $('.msg-checkbox').prop('checked', isChecked);
+    });
+    function deleteSelected() {
+        var selectedIds = [];
+        $('.msg-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Mesaj Seçmediniz',
+                text: 'Lütfen silmek için en az bir mesaj seçin.',
+                confirmButtonColor: '#696cff',
+                background: '#2b2c40',
+                color: '#dbdbeb'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: selectedIds.length + " mesaj çöp kutusuna taşınacak.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#696cff',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'İptal',
+            background: '#2b2c40',
+            color: '#dbdbeb'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Message/MarkAsTrash",
+                    data: { ids: selectedIds },
+                    success: function(response) {
+                        if (response.success) {
+                            selectedIds.forEach(id => {
+                                $('#row-' + id).fadeOut(300, function() { $(this).remove(); });
+                            });
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Taşındı!',
+                                text: 'Mesajlar çöp kutusuna atıldı.',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                background: '#2b2c40',
+                                color: '#dbdbeb'
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function toggleReadSelected() {
+        var selectedIds = [];
+        $('.msg-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length === 0) return;
+
+        $.ajax({
+            type: "POST",
+            url: "/Message/ToggleReadStatus",
+            data: { ids: selectedIds },
+            success: function(response) {
+                if (response.success) {
+                    selectedIds.forEach(id => {
+                        var row = $('#row-' + id);
+                        if (row.hasClass('fw-bold')) {
+                            row.removeClass('fw-bold'); 
+                        } else {
+                            row.addClass('fw-bold'); 
+                        }
+                    });
+                    $('.msg-checkbox').prop('checked', false);
+                    $('#selectAll').prop('checked', false);
+                }
+            }
+        });
+    }
+    function toggleStar(e, element, messageId) {
+        if(e) { e.stopPropagation(); }
+        var icon = $(element);
+        if (icon.hasClass('bxs-star')) {
+             icon.removeClass('bxs-star starred').addClass('bx-star');
+        } else {
+             icon.removeClass('bx-star').addClass('bxs-star starred');
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/Message/ToggleStar",
+            data: { id: messageId },
+            success: function (response) {
+                if (!response.success) {
+                    location.reload();
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,204 @@
+﻿@model Project2Email.Dtos.InboxMessageDto
+
+@{
+    ViewData["Title"] = "Mesaj Detayı";
+    Layout = "~/Views/Layout/Index.cshtml";
+}
+
+<style>
+    .email-detail-wrapper {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        min-height: 80vh;
+    }
+
+    .email-container {
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .card {
+        background-color: #2b2c40;
+        border: 1px solid #444564;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.3);
+    }
+
+    .email-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #444564;
+    }
+
+    .sender-avatar {
+        width: 48px;
+        height: 48px;
+        background-color: #696cff;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .email-meta h5 {
+        color: #dbdbeb;
+        margin-bottom: 0.2rem;
+    }
+
+    .email-meta span {
+        color: #a3a4cc;
+        font-size: 0.9rem;
+    }
+
+    .email-date {
+        color: #a3a4cc;
+        font-size: 0.85rem;
+    }
+    .email-body {
+        padding: 2rem;
+        color: #dbdbeb; 
+        font-family: 'Public Sans', sans-serif;
+        line-height: 1.6;
+        min-height: 300px;
+        background-color: #232333; 
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+    }
+        .email-body img {
+            max-width: 100%; 
+            height: auto;
+        }
+
+        .email-body p {
+            margin-bottom: 1rem;
+        }
+
+        .email-body table {
+            max-width: 100%;
+            display: block;
+            overflow-x: auto;
+        }
+    .action-bar {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #444564;
+        display: flex;
+        gap: 10px;
+        background-color: #2b2c40;
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+    }
+
+    .btn-outline-secondary {
+        color: #a3a4cc;
+        border-color: #444564;
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #38394e;
+            color: #fff;
+        }
+</style>
+
+<div class="email-detail-wrapper">
+    <div class="email-container">
+
+        <div class="d-flex justify-content-between mb-3">
+            <a href="/Message/Inbox" class="btn btn-outline-secondary">
+                <i class='bx bx-arrow-back me-1'></i> Gelen Kutusuna Dön
+            </a>
+            <div>
+                <button type="button" class="btn btn-outline-secondary" title="Çöp Kutusuna Taşı" onclick="deleteSingleMessage(@Model.MessageId)">
+                    <i class='bx bx-trash'></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="email-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="sender-avatar">
+                        @Model.SenderEmail.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="email-meta">
+                        <h5>@Model.Subject</h5>
+                        <span>Gönderen: <strong>@Model.SenderEmail</strong></span>
+                    </div>
+                </div>
+                <div class="email-date">
+                    <i class='bx bx-time-five me-1'></i> @Model.SendDate.ToString("dd MMM yyyy, HH:mm")
+                </div>
+            </div>
+
+            <div class="email-body">
+                @Html.Raw(Model.MessageDetail)
+            </div>
+
+            <div class="action-bar">
+                <a href="/Message/Reply/@Model.MessageId" class="btn btn-primary">
+                    <i class='bx bx-reply me-1'></i> Yanıtla
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function deleteSingleMessage(id) {
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: "Bu mesaj çöp kutusuna taşınacak.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#696cff',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Evet, Taşı',
+            cancelButtonText: 'İptal',
+            background: '#2b2c40',
+            color: '#dbdbeb'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var selectedIds = [id];
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Message/MarkAsTrash",
+                    data: { ids: selectedIds },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Taşındı!',
+                                text: 'Mesaj çöp kutusuna taşındı.',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                background: '#2b2c40',
+                                color: '#dbdbeb'
+                            }).then(() => {
+                                window.location.href = "/Message/Inbox";
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Hata',
+                                text: 'Bir sorun oluştu.',
+                                background: '#2b2c40',
+                                color: '#dbdbeb'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Sunucu Hatası',
+                            text: 'İşlem gerçekleştirilemedi.',
+                            background: '#2b2c40',
+                            color: '#dbdbeb'
+                        });
+                    }
+                });
+            }
+        });
+    }
+</script>

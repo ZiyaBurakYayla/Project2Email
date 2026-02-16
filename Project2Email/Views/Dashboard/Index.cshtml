@@ -1,0 +1,391 @@
+﻿@model List<Project2Email.Dtos.InboxMessageDto>
+
+@{
+    ViewData["Title"] = "Genel Bakış";
+    Layout = "~/Views/Layout/Index.cshtml";
+
+    var currentUser = ViewBag.User as Project2Email.Entities.AppUser;
+    string currentUserName = currentUser?.Name ?? "Kullanıcı";
+    string currentUserEmail = currentUser?.Email ?? "email@adresiniz.com";
+}
+
+<style>
+    :root {
+        --bg-paper: #2b2c40;
+        --bg-darker: #232333;
+        --text-primary: #ffffff;
+        --border-color: #444564;
+        --primary-gradient: linear-gradient(45deg, #696cff, #999bff);
+    }
+
+    .dashboard-card {
+        background-color: var(--bg-paper);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-color: #696cff;
+        }
+
+    .stat-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .profile-card {
+        text-align: center;
+        position: relative;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .profile-header {
+        height: 80px;
+        background: var(--primary-gradient);
+        border-radius: 1rem 1rem 0 0;
+        width: 100%;
+    }
+
+    .profile-info {
+        padding: 2rem 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+
+        .custom-table td {
+            background-color: var(--bg-darker);
+            padding: 1rem;
+            color: var(--text-primary);
+            vertical-align: middle;
+            font-weight: 500; 
+        }
+
+        .custom-table tr td:first-child {
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        .custom-table tr td:last-child {
+            border-top-right-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    .avatar-initial {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .text-white-force {
+        color: #fff !important;
+        opacity: 1 !important;
+    }
+</style>
+
+<div class="container-fluid p-0">
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-box bg-label-primary text-primary me-3">
+                        <i class='bx bx-envelope'></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 text-white">@ViewBag.InboxCount</h4>
+                        <span class="text-white-force">Toplam Gelen</span>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-primary" style="width: 75%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-box bg-label-success text-success me-3">
+                        <i class='bx bx-send'></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 text-white">@ViewBag.SentCount</h4>
+                        <span class="text-white-force">Gönderilen</span>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: 60%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-box bg-label-warning text-warning me-3">
+                        <i class='bx bx-message-square-error'></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 text-white">@ViewBag.UnreadCount</h4>
+                        <span class="text-white-force">Okunmamış</span>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-warning" style="width: 45%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-box bg-label-danger text-danger me-3">
+                        <i class='bx bx-trash'></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 text-white">@ViewBag.TrashCount</h4>
+                        <span class="text-white-force">Çöp Kutusu</span>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-danger" style="width: 25%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-box bg-label-info text-info me-3">
+                        <i class='bx bx-star'></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 text-white">@ViewBag.StarredCount</h4>
+                        <span class="text-white-force">Yıldızlı Mesajlar</span>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-info" style="width: 50%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="dashboard-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-box bg-label-primary text-primary me-3">
+                        <i class='bx bx-user-voice'></i>
+                    </div>
+                    <div style="overflow: hidden;">
+                        <h6 class="mb-0 text-white text-truncate" title="@ViewBag.TopSenderEmail">@ViewBag.TopSenderEmail</h6>
+                        <span class="text-white-force">En Aktif (@ViewBag.TopSenderCount)</span>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 4px;">
+                    <div class="progress-bar bg-primary" style="width: 85%"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-white mb-0">Haftalık Mesaj Trafiği</h5>
+                    <div class="badge bg-label-primary p-2">Son 7 Gün</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="dashboard-card">
+                <h5 class="text-white mb-4">Kategori Dağılımı</h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="mt-4 text-center">
+                    <span class="text-white-force">Mesajlarınızın etiket dağılımı</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-white mb-0">Son Gelen Mesajlar</h5>
+                    <a href="/Message/Inbox" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar">
+                                                <span class="avatar-initial rounded-circle bg-label-secondary text-white">
+                                                    @(string.IsNullOrEmpty(item.SenderEmail) ? "?" : item.SenderEmail.Substring(0, 1).ToUpper())
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="text-white mb-0" style="font-size: 0.9rem;">
+                                                    @item.SenderEmail
+                                                </h6>
+                                                <span class="text-white-force" style="font-size: 0.8rem;">@item.Subject</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end text-white-force small">
+                                        @item.SendDate.ToString("dd MMM HH:mm")
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="/Message/Detail/@item.MessageId" class="btn btn-icon btn-sm btn-outline-secondary">
+                                            <i class='bx bx-chevron-right'></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="dashboard-card profile-card">
+                <div class="profile-header"></div>
+                <div class="profile-info">
+                    <h3 class="text-white mb-2">@currentUserName</h3>
+                    <p class="text-white mb-4">
+                        <i class='bx bx-envelope me-1'></i> @currentUserEmail
+                    </p>
+                    <a href="/Profile/Index" class="btn btn-primary w-100">
+                        <i class='bx bx-user-circle me-2'></i>Profile Git
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const primaryColor = '#696cff';
+        const gridColor = '#444564';
+        const textColor = '#ffffff'; 
+
+        var trafficCtx = document.getElementById('trafficChart').getContext('2d');
+        var gradient = trafficCtx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(105, 108, 255, 0.5)');
+        gradient.addColorStop(1, 'rgba(105, 108, 255, 0.0)');
+
+        var chartDates = @Html.Raw(Json.Serialize(ViewBag.ChartDates ?? new List<string>()));
+        var chartValues = @Html.Raw(Json.Serialize(ViewBag.ChartValues ?? new List<int>()));
+
+        new Chart(trafficCtx, {
+            type: 'line',
+            data: {
+                labels: chartDates,
+                datasets: [{
+                    label: 'Mesaj Trafiği',
+                    data: chartValues,
+                    borderColor: primaryColor,
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#2b2c40',
+                    pointBorderColor: primaryColor
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: gridColor, borderDash: [5, 5] },
+                        ticks: { color: textColor, stepSize: 1 },
+                        beginAtZero: true
+                    },
+                    x: { grid: { display: false }, ticks: { color: textColor } }
+                }
+            }
+        });
+
+        var catCtx = document.getElementById('categoryChart').getContext('2d');
+        var catLabels = @Html.Raw(Json.Serialize(ViewBag.CategoryNames));
+        var catData = @Html.Raw(Json.Serialize(ViewBag.CategoryCounts));
+
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: ['#ffab00', '#03c3ec', '#71dd37', '#8592a3', '#ff3e1d'],
+                    borderWidth: 0,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, usePointStyle: true, padding: 20 }
+                    }
+                }
+            }
+        });
+    });
+</script>
