@@ -96,7 +96,7 @@ namespace Project2Email.Controllers
         private void SendVerificationEmail(string email, int code)
         {
             MimeMessage mimeMessage = new MimeMessage();
-            MailboxAddress mailboxAddressFrom = new MailboxAddress("IdentityAdmin", "ziyayayla75@gmail.com");
+            MailboxAddress mailboxAddressFrom = new MailboxAddress("IdentityAdmin", "xxx@gmail.com");
             mimeMessage.From.Add(mailboxAddressFrom);
 
             MailboxAddress mailboxAddressTo = new MailboxAddress("User", email);
@@ -111,7 +111,7 @@ namespace Project2Email.Controllers
             using (SmtpClient smtpClient = new SmtpClient())
             {
                 smtpClient.Connect("smtp.gmail.com", 587, false);
-                smtpClient.Authenticate("ziyayayla75@gmail.com", "ybzf zrxb zhdn tqub");
+                smtpClient.Authenticate("xxx@gmail.com", "key");
                 smtpClient.Send(mimeMessage);
                 smtpClient.Disconnect(true);
             }
